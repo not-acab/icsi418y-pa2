@@ -42,7 +42,7 @@ app.post("/signup", async (req, res) => {
     }
     catch (error) {
         console.error(error);
-        res.status(500).json({
+        return res.status(500).json({
             message: "Server error"
         });
     }
@@ -82,7 +82,7 @@ app.post("/login", async (req, res) => {
     }
     catch (error) {
         console.error(error);
-        res.status(500).json({
+        return res.status(500).json({
             message: "Server error"
         });
     }
