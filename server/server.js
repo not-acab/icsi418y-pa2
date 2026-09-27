@@ -9,7 +9,6 @@ const app = express();
 /* Holds users from db collection. Successful db connection required */
 let users;
 
-
 app.use(express.json());
 app.use(cors());
 
@@ -60,7 +59,7 @@ app.post("/login", async (req, res) => {
     /* Required field missing */
     if (!username) {
         return res.status(400).json({
-            message: "Username and password are required!"
+            message: "Username and password are required!" //must contain "user" for app validation
         });
     }
 
@@ -70,13 +69,13 @@ app.post("/login", async (req, res) => {
 
         if (!user) {
             return res.status(401).json({
-                message: "That user does not exist. Did you mean to Signup?"
+                message: "User does not exist." //must contain "does not exist" for app validation
             });
         }
 
         if (user.password !== password) {
             return res.status(401).json({
-                message: "Incorrect Password."
+                message: "Incorrect Password!"
             });
         }
     }
@@ -89,7 +88,7 @@ app.post("/login", async (req, res) => {
 
     /* Login Success */
     res.status(200).json({
-        message: "Login successful."
+        message: "Login successful!"
     });
 });
 

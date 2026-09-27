@@ -96,3 +96,13 @@
   color: var(--error);
   background: rgba(214, 69, 91, 0.1);
 }
+.message-link {
+  color: inherit;
+  text-decoration: underline;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.message-link:hover {
+  opacity: 0.8;
+}

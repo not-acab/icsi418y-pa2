@@ -1,16 +1,38 @@
 import { useState } from "react";
 import "./component.css";
 
-const Login = () => {
+const Login = ({ onActivity, onSignup, userNotFound }) => {
+    /* Fields */
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [errors, setErrors] = useState({});
+    /* Messages */
     const [message, setMessage] = useState("");
     const [messageType, setMessageType] = useState("");
-    const [errors, setErrors] = useState({});
+    /* Card switching */
+    const [lastOnSignup, setLastOnSignup] = useState(onSignup);
+    /* Hyperlink to signup */
+    const [showSignupLink, setShowSignupLink] = useState(false);
 
+    /* Clear card when typing in Signup */
+    if (lastOnSignup !== onSignup) {
+        setLastOnSignup(onSignup);
+        if (onSignup) {
+            setUsername("");
+            setPassword("");
+            setMessage("");
+            setMessageType("");
+            setErrors({});
+            setShowSignupLink(false);
+            onActivity(false)
+        }
+    }
+
+    /* Submit Form */
     const handleSubmit = async (event) => {
         event.preventDefault();
 
+        /* Required fields empty - POST request still sent as per pa2 requirements */
         const fieldEmpty = {
             username: !username,
             password: !password
@@ -32,25 +54,29 @@ const Login = () => {
             if (response.ok) {
                 setMessageType("success");
                 setErrors({});
+                setShowSignupLink(false);
             } else {
                 setMessageType("error");
-                newUser: {
-                    if (data.message.includes("does not exist")) {
-                        setErrors({ username: true });
-                        break newUser;
-                    }
+                if (data.message.toLowerCase().includes("user")) {
+                    setErrors({ username: true });
+                    setShowSignupLink(true);
+
+                } else {
                     setErrors({ password: true });
+                    setShowSignupLink(false);
                 }
             }
         }
         catch (error) {
             setMessage("Could not connect to the server");
             setMessageType("error");
+            setShowSignupLink(false);
             console.error(error);
 
         }
     };
 
+    /* JSX */
     return (
         <div className="card">
             <h2>Login
@@ -63,6 +89,7 @@ const Login = () => {
                     value={username}
                     className={errors.username ? "invalid" : ""}
                     onChange={(event) => {
+                        onActivity(true);
                         setUsername(event.target.value)
                         if (errors.username) setErrors((prev) => ({ ...prev, username: false }));
                     }}
@@ -73,13 +100,30 @@ const Login = () => {
                     value={password}
                     className={errors.password ? "invalid" : ""}
                     onChange={(event) => {
+                        onActivity(true);
                         setPassword(event.target.value)
                         if (errors.password) setErrors((prev) => ({ ...prev, password: false }));
                     }}
                 />
                 <button type="submit">Login</button>
             </form>
-            {message && <p className={`message ${messageType}`}>{message}</p>}
+            /* Overwrites message with a hyperlink to Signup */
+            {message && (
+                <p className={`message ${messageType}`}>
+                    {showSignupLink ? (
+                        <>That user does not exist.{" "}
+                            <a href="#signup"
+                                className="message-link"
+                                onClick={(event) => {
+                                    event.preventDefault();
+                                    userNotFound(username);
+                                }}
+                            >Did you mean to Signup?
+                            </a>
+                        </>
+                    ) : (message)}
+                </p>
+            )}
         </div>
     );
 };

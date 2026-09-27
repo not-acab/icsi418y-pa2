@@ -1,18 +1,51 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import "./component.css";
 
-const Signup = () => {
+const Signup = ({ onActivity, onLogin, prefillUsername, resetPrefill }) => {
+    /* Fields */
     const [firstname, setFirstName] = useState("");
     const [lastname, setLastName] = useState("");
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [errors, setErrors] = useState({});
+    /* Messages */
     const [message, setMessage] = useState("");
     const [messageType, setMessageType] = useState("");
-    const [errors, setErrors] = useState({});
+    /* Card switching */
+    const [lastOnlogin, setLastOnlogin] = useState(onLogin);
+    /* Refernce to username input - needed to focus on switch */
+    const usernameRef = useRef(null);
 
+    /* Clear card when typing in Login */
+    if (lastOnlogin !== onLogin) {
+        setLastOnlogin(onLogin);
+        if (onLogin) {
+            setFirstName("");
+            setLastName("");
+            setUsername("");
+            setPassword("");
+            setErrors({});
+            setMessage("");
+            setMessageType("");
+            onActivity(false);
+        }
+    }
+
+    /* Fill username from login and focus it */
+    useEffect(() => {
+        if (prefillUsername) {
+            setUsername(prefillUsername);
+            usernameRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+            usernameRef.current?.focus();
+            resetPrefill();
+        }
+    }, [prefillUsername, resetPrefill]);
+
+    /* Submit form */
     const handleSubmit = async (event) => {
         event.preventDefault();
 
+        /* Required fields empty - POST request still sent as per pa2 requirements */
         const fieldEmpty = {
             firstname: !firstname,
             lastname: !lastname,
@@ -40,8 +73,9 @@ const Signup = () => {
                 setPassword("");
                 setErrors({});
             } else {
+                /* add failed */
+                if (data.message.toLowerCase().includes("user")) setErrors({ username: true });
                 setMessageType("error");
-                if (data.message === "Username already exists!") setErrors({ username: true });
             }
         }
         catch (error) {
@@ -51,6 +85,7 @@ const Signup = () => {
         }
     };
 
+    /* JSX */
     return (
         <div className="card">
             <h2>Sign Up
@@ -63,6 +98,7 @@ const Signup = () => {
                     value={firstname}
                     className={errors.firstname ? "invalid" : ""}
                     onChange={(event) => {
+                        onActivity(true);
                         setFirstName(event.target.value);
                         if (errors.firstname) setErrors((prev) => ({ ...prev, firstname: false }));
                     }}
@@ -73,16 +109,19 @@ const Signup = () => {
                     value={lastname}
                     className={errors.lastname ? "invalid" : ""}
                     onChange={(event) => {
+                        onActivity(true);
                         setLastName(event.target.value);
                         if (errors.lastname) setErrors((prev) => ({ ...prev, lastname: false }));
                     }}
                 />
-                <input
+                <input 
+                    ref={usernameRef}
                     type="text"
                     placeholder="Username"
                     value={username}
                     className={errors.username ? "invalid" : ""}
                     onChange={(event) => {
+                        onActivity(true);
                         setUsername(event.target.value)
                         if (errors.username) setErrors((prev) => ({ ...prev, username: false }));
                     }}
@@ -93,6 +132,7 @@ const Signup = () => {
                     value={password}
                     className={errors.password ? "invalid" : ""}
                     onChange={(event) => {
+                        onActivity(true);
                         setPassword(event.target.value)
                         if (errors.password) setErrors((prev) => ({ ...prev, password: false }));
                     }}
