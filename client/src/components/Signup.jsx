@@ -1,4 +1,5 @@
 import { useState } from "react";
+import "./component.css";
 
 const Signup = () => {
     const [firstname, setFirstName] = useState("");
@@ -6,6 +7,7 @@ const Signup = () => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [message, setMessage] = useState("");
+    const [messageType, setMessageType] = useState("");
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -15,26 +17,31 @@ const Signup = () => {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({ firstname, lastname, username, password })
-            }); const data = await response.json();
+            });
+            const data = await response.json();
 
+            setMessage(data.message);
             if (response.ok) {
-                setMessage(data.message);
+                setMessageType("success");
                 setFirstName("");
                 setLastName("");
                 setUsername("");
                 setPassword("");
             }
-            else setMessage(data.message);
+            else setMessageType("error");
         }
         catch (error) {
             setMessage("Could not connect to server");
+            setMessageType("error");
             console.error(error);
         }
     };
 
     return (
-        <div>
-            <h2>Sign Up</h2>
+        <div className="card">
+            <h2>Sign Up
+                <span className="subtitle">-If it's your first time here</span>
+            </h2>
             <form onSubmit={handleSubmit}>
                 <input
                     type="text"
@@ -62,7 +69,7 @@ const Signup = () => {
                 />
                 <button type="submit">Sign Up</button>
             </form>
-            {message && <p>{message}</p>}
+            {message && <p className={`message ${messageType}`}>{message}</p>}
         </div>
     );
 };

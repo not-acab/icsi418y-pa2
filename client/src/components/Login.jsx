@@ -1,9 +1,11 @@
 import { useState } from "react";
+import "./component.css";
 
 const Login = () => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [message, setMessage] = useState("");
+    const [messageType, setMessageType] = useState("");
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -13,20 +15,27 @@ const Login = () => {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({ username, password })
-            }); const data = await response.json();
+            });
+
+            const data = await response.json();
 
             setPassword("");
             setMessage(data.message);
+            setMessageType(response.ok ? "success" : "error");
         } 
         catch (error) {
             setMessage("Could not connect to the server");
+            setMessageType("error");
             console.error(error);
+
         }
     };
 
     return (
-        <div>
-            <h2>Login</h2>
+        <div className="card">
+            <h2>Login
+                <span className="subtitle">-If you're a returning user</span>
+            </h2>
             <form onSubmit={handleSubmit}>
                 <input
                     type="text"
@@ -42,7 +51,7 @@ const Login = () => {
                 />
                 <button type="submit">Login</button>
             </form>
-            {message && <p>{message}</p>}
+            {message && <p className={`message ${messageType}`}>{message}</p>}
         </div>
     );
 };
