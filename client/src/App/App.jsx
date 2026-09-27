@@ -8,7 +8,7 @@ const App = () => {
     return (
         <div className="page">
             <header className="page-header">
-                <h1>Project 2 Accounts</h1>
+                <h1>Project 2 - Accounts</h1>
                 <p>Create an account or Sign in.</p>
             </header>
             <div className="auth">

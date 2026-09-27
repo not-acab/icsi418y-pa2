@@ -6,11 +6,19 @@ const Login = () => {
     const [password, setPassword] = useState("");
     const [message, setMessage] = useState("");
     const [messageType, setMessageType] = useState("");
+    const [errors, setErrors] = useState({});
 
     const handleSubmit = async (event) => {
         event.preventDefault();
 
-        try { /* POST Request */
+        const fieldEmpty = {
+            username: !username,
+            password: !password
+        };
+        setErrors(fieldEmpty);
+
+        try {
+            /* POST Request */
             const response = await fetch("http://localhost:9000/login", {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
@@ -18,11 +26,23 @@ const Login = () => {
             });
 
             const data = await response.json();
-
             setPassword("");
             setMessage(data.message);
-            setMessageType(response.ok ? "success" : "error");
-        } 
+
+            if (response.ok) {
+                setMessageType("success");
+                setErrors({});
+            } else {
+                setMessageType("error");
+                newUser: {
+                    if (data.message.includes("does not exist")) {
+                        setErrors({ username: true });
+                        break newUser;
+                    }
+                    setErrors({ password: true });
+                }
+            }
+        }
         catch (error) {
             setMessage("Could not connect to the server");
             setMessageType("error");
@@ -41,13 +61,21 @@ const Login = () => {
                     type="text"
                     placeholder="Username"
                     value={username}
-                    onChange={(event) => setUsername(event.target.value)}
+                    className={errors.username ? "invalid" : ""}
+                    onChange={(event) => {
+                        setUsername(event.target.value)
+                        if (errors.username) setErrors((prev) => ({ ...prev, username: false }));
+                    }}
                 />
                 <input
                     type="password"
                     placeholder="Password"
                     value={password}
-                    onChange={(event) => setPassword(event.target.value)}
+                    className={errors.password ? "invalid" : ""}
+                    onChange={(event) => {
+                        setPassword(event.target.value)
+                        if (errors.password) setErrors((prev) => ({ ...prev, password: false }));
+                    }}
                 />
                 <button type="submit">Login</button>
             </form>

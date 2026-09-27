@@ -8,27 +8,41 @@ const Signup = () => {
     const [password, setPassword] = useState("");
     const [message, setMessage] = useState("");
     const [messageType, setMessageType] = useState("");
+    const [errors, setErrors] = useState({});
 
     const handleSubmit = async (event) => {
         event.preventDefault();
 
-        try { /* POST Request */
+        const fieldEmpty = {
+            firstname: !firstname,
+            lastname: !lastname,
+            username: !username,
+            password: !password
+        };
+        setErrors(fieldEmpty);
+
+        try {
+            /* POST Request */
             const response = await fetch ("http://localhost:9000/signup", {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({ firstname, lastname, username, password })
             });
-            const data = await response.json();
 
+            const data = await response.json();
             setMessage(data.message);
+
             if (response.ok) {
                 setMessageType("success");
                 setFirstName("");
                 setLastName("");
                 setUsername("");
                 setPassword("");
+                setErrors({});
+            } else {
+                setMessageType("error");
+                if (data.message === "Username already exists!") setErrors({ username: true });
             }
-            else setMessageType("error");
         }
         catch (error) {
             setMessage("Could not connect to server");
@@ -47,25 +61,41 @@ const Signup = () => {
                     type="text"
                     placeholder="First Name"
                     value={firstname}
-                    onChange={(event) => setFirstName(event.target.value)}
+                    className={errors.firstname ? "invalid" : ""}
+                    onChange={(event) => {
+                        setFirstName(event.target.value);
+                        if (errors.firstname) setErrors((prev) => ({ ...prev, firstname: false }));
+                    }}
                 />
                 <input
                     type="text"
                     placeholder="Last Name"
                     value={lastname}
-                    onChange={(event) => setLastName(event.target.value)}
+                    className={errors.lastname ? "invalid" : ""}
+                    onChange={(event) => {
+                        setLastName(event.target.value);
+                        if (errors.lastname) setErrors((prev) => ({ ...prev, lastname: false }));
+                    }}
                 />
                 <input
                     type="text"
                     placeholder="Username"
                     value={username}
-                    onChange={(event) => setUsername(event.target.value)}
+                    className={errors.username ? "invalid" : ""}
+                    onChange={(event) => {
+                        setUsername(event.target.value)
+                        if (errors.username) setErrors((prev) => ({ ...prev, username: false }));
+                    }}
                 />
                 <input
                     type="password"
                     placeholder="Password"
                     value={password}
-                    onChange={(event) => setPassword(event.target.value)}
+                    className={errors.password ? "invalid" : ""}
+                    onChange={(event) => {
+                        setPassword(event.target.value)
+                        if (errors.password) setErrors((prev) => ({ ...prev, password: false }));
+                    }}
                 />
                 <button type="submit">Sign Up</button>
             </form>
