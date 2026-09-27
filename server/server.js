@@ -4,22 +4,11 @@ const { MongoClient } = require("mongodb");
 const express = require("express");
 const cors = require("cors");
 
-const client = new MongoClient(process.env.MONGO_URI);
-const db = client.db("pa2");
-const users = db.collection("users");
 const app = express();
 
-const connectDatabase = async() => {
-    try {
-        await client.connect();
-        console.log("Connected to MongoDB");
-    }
-    catch (error) {
-        console.error("Could not connect to MongoDB");
-        console.error(error);
-        process.exit(1)
-    }
-}
+/* Holds users from db collection. Successful db connection required */
+let users;
+
 
 app.use(express.json());
 app.use(cors());
@@ -28,6 +17,7 @@ app.use(cors());
 app.post("/signup", async (req, res) => {
     const { firstname, lastname, username, password } = req.body;
 
+    /* Required field is missing */
     if (!firstname || !lastname || !username || !password) {
         return res.status(400).json({
             message: "All fields are required!"
@@ -35,21 +25,19 @@ app.post("/signup", async (req, res) => {
     }
 
     try {
+        /* Check for username already in db */
         if (await users.findOne({ username })) {
             return res.status(409).json({
                 message: "Username already exists!"
             });
         }
 
+        /* Add user into db */
         await users.insertOne({
             f_name: firstname,
             l_name: lastname,
             username: username,
             password: password
-        });
-
-        res.status(201).json({
-            message: "User created successfully."
         });
     }
     catch (error) {
@@ -58,22 +46,29 @@ app.post("/signup", async (req, res) => {
             message: "Server error"
         });
     }
+
+    /* Signup Success */
+    res.status(201).json({
+            message: "User created successfully."
+    });
 });
 
 /* Login Request */
 app.post("/login", async (req, res) => {
     const { username, password } = req.body;
 
-    if (!username || !password) {
+    /* Required field missing */
+    if (!username) {
         return res.status(400).json({
             message: "Username and password are required!"
         });
     }
 
     try {
+        /* Find user by username */
         const user = await users.findOne({ username });
 
-        if (!(await users.findOne({ username }))) {
+        if (!user) {
             return res.status(401).json({
                 message: "That user does not exist. Did you mean to Signup?"
             });
@@ -84,10 +79,6 @@ app.post("/login", async (req, res) => {
                 message: "Incorrect Password."
             });
         }
-
-        res.status(200).json({
-            message: "Login successful."
-        });
     }
     catch (error) {
         console.error(error);
@@ -95,6 +86,11 @@ app.post("/login", async (req, res) => {
             message: "Server error"
         });
     }
+
+    /* Login Success */
+    res.status(200).json({
+        message: "Login successful."
+    });
 });
 
 /* Health Check Request */
@@ -104,9 +100,29 @@ app.get("/", (req, res) => {
     });
 });
 
-/* Start Server */
-connectDatabase();
 
-app.listen(9000, () => {
-    console.log("Server running on port 9000");
-});
+/* Start Server */
+const connectDatabase = async() => {
+    /* Connect to db */
+    const client = new MongoClient(process.env.MONGO_URI);
+    try {
+        await client.connect();
+        console.log("Connected to MongoDB");
+    }
+    catch (error) {
+        console.error("Could not connect to MongoDB");
+        console.error(error);
+        process.exit(1)
+    }
+
+    /* Access db user collection */
+    const db = client.db("pa2");
+    users = db.collection("users");
+
+    /* Only listen after a succesful connection */
+    app.listen(9000, () => {
+        console.log("Server running on port 9000");
+    });
+}
+
+connectDatabase();
