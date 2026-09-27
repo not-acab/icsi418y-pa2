@@ -11,7 +11,7 @@ const Signup = () => {
         event.preventDefault();
 
         try { /* POST Request */
-            const response = await fetch ("<http://localhost:9000/signup>", {
+            const response = await fetch ("http://localhost:9000/signup", {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({ firstname, lastname, username, password })
@@ -27,7 +27,8 @@ const Signup = () => {
             else setMessage(data.message);
         }
         catch (error) {
-            setMessage("Could not connect to server: " + error);
+            setMessage("Could not connect to server");
+            console.error(error);
         }
     };
 
