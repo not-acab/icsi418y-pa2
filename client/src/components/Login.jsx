@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import "./component.css";
 
-const Login = ({ onActivity, onSignup, userNotFound }) => {
+const Login = ({ activeCard, setActiveCard, getMessage, sendMessage }) => {
     /* Fields */
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
@@ -10,23 +10,41 @@ const Login = ({ onActivity, onSignup, userNotFound }) => {
     const [message, setMessage] = useState("");
     const [messageType, setMessageType] = useState("");
     /* Card switching */
-    const [lastOnSignup, setLastOnSignup] = useState(onSignup);
+    const [lastActiveCard, setLastActiveCard] = useState(activeCard);
+    /* Process messages - thank you 412 */
+    const [lastMessage, setLastMessage] = useState(getMessage);
     /* Hyperlink to signup */
     const [showSignupLink, setShowSignupLink] = useState(false);
+    /* Refernce to username input - needed to focus on switch */
+    const usernameRef = useRef(null);
 
-    /* Clear card when typing in Signup */
-    if (lastOnSignup !== onSignup) {
-        setLastOnSignup(onSignup);
-        if (onSignup) {
+
+    /* Clear card when Signup becomes the active card */
+    if (lastActiveCard !== activeCard) {
+        setLastActiveCard(activeCard);
+        if (activeCard === "signup") {
             setUsername("");
             setPassword("");
             setMessage("");
-            setMessageType("");
             setErrors({});
-            setShowSignupLink(false);
-            onActivity(false)
         }
     }
+
+    /* Fill username sent from Signup */
+    if (getMessage !== lastMessage) {
+        setLastMessage(getMessage);
+        if (getMessage?.to === "login") {
+            setUsername(getMessage.username);
+        }
+    }
+
+    /* Focus the username field after getMessage is updated and rendered */
+    useEffect(() => {
+        if (getMessage?.to === "login") {
+            usernameRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+            usernameRef.current?.focus();
+        }
+    }, [getMessage]);
 
     /* Submit Form */
     const handleSubmit = async (event) => {
@@ -47,23 +65,29 @@ const Login = ({ onActivity, onSignup, userNotFound }) => {
                 body: JSON.stringify({ username, password })
             });
 
+            /* POST Response - always clear password & set server message */
             const data = await response.json();
             setPassword("");
             setMessage(data.message);
+            setShowSignupLink(false);
 
             if (response.ok) {
+                /* Success styling */
                 setMessageType("success");
                 setErrors({});
-                setShowSignupLink(false);
             } else {
+                /* Error styling */
                 setMessageType("error");
+                /* Determine the nature of the error */
                 if (data.message.toLowerCase().includes("user")) {
                     setErrors({ username: true });
+                }
+                if (data.message.toLowerCase().includes("does not exist")) {
                     setShowSignupLink(true);
-
-                } else {
-                    setErrors({ password: true });
-                    setShowSignupLink(false);
+                    setErrors((prev) => ({ ...prev, password: true }));
+                }
+                else if (data.message.toLowerCase().includes("pass")) {
+                    setErrors((prev) => ({ ...prev, password: true }));
                 }
             }
         }
@@ -79,17 +103,17 @@ const Login = ({ onActivity, onSignup, userNotFound }) => {
     /* JSX */
     return (
         <div className="card">
-            <h2>Login
+            <h2>Log In
                 <span className="subtitle">-If you're a returning user</span>
             </h2>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} onFocus={() => setActiveCard("login")}>
                 <input
+                    ref={usernameRef}
                     type="text"
                     placeholder="Username"
                     value={username}
-                    className={errors.username ? "invalid" : ""}
+                    className={errors.username ? "error" : ""}
                     onChange={(event) => {
-                        onActivity(true);
                         setUsername(event.target.value)
                         if (errors.username) setErrors((prev) => ({ ...prev, username: false }));
                     }}
@@ -98,16 +122,15 @@ const Login = ({ onActivity, onSignup, userNotFound }) => {
                     type="password"
                     placeholder="Password"
                     value={password}
-                    className={errors.password ? "invalid" : ""}
+                    className={errors.password ? "error" : ""}
                     onChange={(event) => {
-                        onActivity(true);
                         setPassword(event.target.value)
                         if (errors.password) setErrors((prev) => ({ ...prev, password: false }));
                     }}
                 />
                 <button type="submit">Login</button>
             </form>
-            /* Overwrites message with a hyperlink to Signup */
+            {/* Overwrites message with a hyperlink to Signup */}
             {message && (
                 <p className={`message ${messageType}`}>
                     {showSignupLink ? (
@@ -116,7 +139,7 @@ const Login = ({ onActivity, onSignup, userNotFound }) => {
                                 className="message-link"
                                 onClick={(event) => {
                                     event.preventDefault();
-                                    userNotFound(username);
+                                    sendMessage({ to: "signup", username });
                                 }}
                             >Did you mean to Signup?
                             </a>

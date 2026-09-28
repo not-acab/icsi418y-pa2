@@ -6,30 +6,31 @@ import Login from "../components/Login";
 import "./App.css";
 
 const App = () => {
-    /* Shared states */
-    const [prefillUsername, setPrefillUsername] = useState("");
-    const [signupActivity, setSignupActivity] = useState(false);
-    const [loginActivity, setLoginActivity] = useState(false);
+    /* Which card has foucs */
+    const [activeCard, setActiveCard] = useState("");
+    /* { to: "signup" | "login", username }: hand username to other card:  */
+    const [message, setMessage] = useState(null);
 
     /* JSX */
     return (
         <div className="page">
             <header className="page-header">
-                <h1>Project 2 - Accounts</h1>
+                <h1>Project 2 - Authentication</h1>
                 <p>Create an account or Sign in.</p>
             </header>
             <div className="auth">
                 <Signup
-                    onActivity={setSignupActivity}
-                    onLogin={loginActivity}
-                    prefillUsername={prefillUsername}
-                    resetPrefill={()=>setPrefillUsername("")}
+                    activeCard={activeCard}
+                    setActiveCard={setActiveCard}
+                    getMessage={message}
+                    sendMessage={setMessage}
                 />
                 <span className="auth-divider">-or-</span>
                 <Login
-                    onActivity={setLoginActivity}
-                    onSignup={signupActivity}
-                    userNotFound={setPrefillUsername}
+                    activeCard={activeCard}
+                    setActiveCard={setActiveCard}
+                    getMessage={message}
+                    sendMessage={setMessage}
                 />
             </div>
             <footer className="tech-stack">

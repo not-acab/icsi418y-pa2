@@ -29,6 +29,7 @@
   border-radius: 8px;
   background: var(--surface-alt);
   color: var(--ink);
+  caret-color: var(--ink);
   transition: border-color 0.15s ease, background 0.15s ease;
 }
 
@@ -40,6 +41,15 @@
   border-color: var(--accent);
   background: var(--surface);
   outline: none;
+}
+
+.card input.error {
+  border-color: var(--error);
+  background: rgba(214, 69, 91, 0.06);
+}
+
+.card input.error:focus {
+  border-color: var(--error);
 }
 
 .card button {
@@ -62,15 +72,6 @@
 
 .card button:active {
   transform: translateY(1px);
-}
-
-.card input.invalid {
-  border-color: var(--error);
-  background: rgba(214, 69, 91, 0.06);
-}
-
-.card input.invalid:focus {
-  border-color: var(--error);
 }
 
 .subtitle {

@@ -4,10 +4,10 @@ const { MongoClient } = require("mongodb");
 const express = require("express");
 const cors = require("cors");
 
-const app = express();
-
 /* Holds users from db collection. Successful db connection required */
 let users;
+
+const app = express();
 
 app.use(express.json());
 app.use(cors());
@@ -17,7 +17,7 @@ app.post("/signup", async (req, res) => {
     const { firstname, lastname, username, password } = req.body;
 
     /* Required field is missing */
-    if (!firstname || !lastname || !username || !password) {
+    if (!username) {
         return res.status(400).json({
             message: "All fields are required!"
         });
@@ -27,9 +27,16 @@ app.post("/signup", async (req, res) => {
         /* Check for username already in db */
         if (await users.findOne({ username })) {
             return res.status(409).json({
-                message: "Username already exists!"
+                message: "User exists" //must contain "exists" for app validation
             });
         }
+
+        /* Required fields are missing */
+        if (!firstname || !lastname || !password) {
+        return res.status(400).json({
+            message: "All fields are required!"
+        });
+    }
 
         /* Add user into db */
         await users.insertOne({
@@ -48,7 +55,7 @@ app.post("/signup", async (req, res) => {
 
     /* Signup Success */
     res.status(201).json({
-            message: "User created successfully."
+        message: "User created successfully."
     });
 });
 
@@ -59,7 +66,7 @@ app.post("/login", async (req, res) => {
     /* Required field missing */
     if (!username) {
         return res.status(400).json({
-            message: "Username and password are required!" //must contain "user" for app validation
+            message: "Username and password are required!" 
         });
     }
 
